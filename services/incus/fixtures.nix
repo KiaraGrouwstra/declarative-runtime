@@ -86,4 +86,14 @@
       certificateFile = "/etc/incus-metrics.crt";
     };
   };
+
+  # No `<attr>File` attribute and no credential, so the rendered config has no
+  # variables. The renderer must then leave out the `variable` block.
+  noFiles = {
+    networks.incusbr0 = {
+      adopt = true;
+      type = "bridge";
+      config."ipv4.address" = "10.0.100.1/24";
+    };
+  };
 }

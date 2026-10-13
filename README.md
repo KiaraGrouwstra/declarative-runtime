@@ -20,6 +20,9 @@ reconciling the service's _runtime state_ once it is up.
 >   access keys, bucket permissions).
 > - **[lldap](services/lldap/README.md)** - 9 resource types (users,
 >   groups, custom attributes and their values, memberships).
+> - **[PostgreSQL](services/postgresql/README.md)** - 15 resource types
+>   (roles, databases, schemas, extensions, functions, grants, default
+>   privileges, logical replication, foreign servers and user mappings).
 
 ## The gap this closes
 
@@ -86,7 +89,7 @@ unit_ visibly (`systemctl status`) without tearing down the service.
 
 Add this flake as an input and import the pairing's NixOS module
 (`nixosModules.forgejo`, `nixosModules.keycloak`, `nixosModules.garage`,
-`nixosModules.lldap`, or
+`nixosModules.lldap`, `nixosModules.postgresql`, or
 `nixosModules.default` for all pairings). Full installation, configuration
 examples, the option reference, the resource table, and the secrets guide
 live in the per-pairing README:
@@ -98,6 +101,7 @@ live in the per-pairing README:
 - [Garage pairing](services/garage/README.md) - includes what the cluster
   needs before the reconciler can apply.
 - [lldap pairing](services/lldap/README.md)
+- [PostgreSQL pairing](services/postgresql/README.md)
 
 ### Runnable examples
 
@@ -150,6 +154,11 @@ services/              # one directory per service<->provider pairing
     module.nix         #   services.lldap.runtime + reconciler
     lib.nix            #   provider specifics: wrapped executor + .tf.json generation
     pkg.nix            #   vendor the provider (not in nixpkgs)
+    checks.nix         #   NixOS VM test
+    README.md          #   usage docs
+  postgresql/          # PostgreSQL <-> cyrilgdn/postgresql (in nixpkgs)
+    module.nix         #   services.postgresql.runtime + reconciler + admin password unit
+    lib.nix            #   provider specifics: wrapped executor + .tf.json generation
     checks.nix         #   NixOS VM test
     README.md          #   usage docs
 examples/              # runnable demos; one configuration.nix + README per example

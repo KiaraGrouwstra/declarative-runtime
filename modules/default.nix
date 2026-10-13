@@ -6,5 +6,6 @@
     ../services/keycloak/module.nix
     ../services/garage/module.nix
     ../services/lldap/module.nix
+    ../services/postgresql/module.nix
   ];
 }

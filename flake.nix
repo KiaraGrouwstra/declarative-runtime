@@ -62,6 +62,10 @@
           inherit pkgs;
           inherit (inputs) nix-tf-schema;
         };
+        incus = import ./services/incus/lib.nix {
+          inherit pkgs;
+          inherit (inputs) nix-tf-schema;
+        };
       };
 
       # A NixOS module cannot reach a flake input by path, so the schema library
@@ -166,6 +170,15 @@
             tfConfig = libs.openbao.openbaoTfConfig;
             fixtures = import ./services/openbao/fixtures.nix;
           };
+
+          incus-rendered-fixtures = renderFixtures {
+            name = "incus";
+            options = libs.incus.resourceOptions // {
+              configDir = urlOption "/var/lib/declarative-incus/client";
+            };
+            tfConfig = libs.incus.incusTfConfig;
+            fixtures = import ./services/incus/fixtures.nix;
+          };
         };
 
       # `<svc>-schema-coverage`: the pairing's coverage table. Building it forces
@@ -201,7 +214,13 @@
               inherit
                 (
                   (lib.evalModules {
-                    modules = [ { options.services.${svc}.runtime = l.resourceOptions; } ];
+                    modules = [
+                      {
+                        options = lib.setAttrByPath (lib.splitString "." (
+                          l.runtimePrefix or "services.${svc}.runtime"
+                        )) l.resourceOptions;
+                      }
+                    ];
                   })
                 )
                 options
@@ -254,6 +273,7 @@
       nixosModules.lldap = withSchemaLib ./services/lldap/module.nix;
       nixosModules.postgresql = withSchemaLib ./services/postgresql/module.nix;
       nixosModules.openbao = withSchemaLib ./services/openbao/module.nix;
+      nixosModules.incus = withSchemaLib ./services/incus/module.nix;
 
       nixosConfigurations = lib.mapAttrs' (
         name: cfg: lib.nameValuePair "example-${name}" (exampleSystem "x86_64-linux" cfg)
@@ -313,6 +333,10 @@
           inherit (inputs) self;
         })
         // (import ./services/openbao/checks.nix {
+          inherit pkgs;
+          inherit (inputs) self;
+        })
+        // (import ./services/incus/checks.nix {
           inherit pkgs;
           inherit (inputs) self;
         })

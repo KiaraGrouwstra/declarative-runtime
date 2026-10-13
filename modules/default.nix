@@ -8,5 +8,6 @@
     ../services/lldap/module.nix
     ../services/postgresql/module.nix
     ../services/openbao/module.nix
+    ../services/incus/module.nix
   ];
 }

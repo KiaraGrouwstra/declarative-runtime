@@ -76,8 +76,10 @@ in
 
     An overlay's first six fields are mandatory; the rest default to empty and
     exist only to correct things a schema cannot state. There is deliberately no
-    way to declare an option with no schema counterpart -- `refs` is the sole
-    exception, and that is what makes the drift check total.
+    way to declare an option with no schema counterpart. There are two
+    exceptions, and neither renders a resource attribute: `refs`, and the
+    `adopt` option that `importId` adds. That is what makes the drift check
+    total.
 
       type           schema key; must exist and be claimed exactly once
       prefix         unique Terraform label prefix
@@ -93,6 +95,13 @@ in
       forceOptional  paths required upstream but nullable here
       requiredAttrs  extra non-empty checks
       extraAttrs     last-resort typed overrides; keys must name real attributes
+      importId       null, or a function from an item's options as set (refs
+                     not resolved, unset options absent) to the provider's
+                     import ID for it. When set, each item gets
+                     an `adopt` option that renders an OpenTofu `import`
+                     block. For objects that something other than the
+                     reconciler creates first, and that the provider cannot
+                     create again. The provider documents the ID format.
 
     Returns `{ resourceTypes; checks; coverage; }`. `checks` is a list of
     null-or-throw, `deepSeq`'d into `resourceTypes`, so merely forcing the
@@ -122,6 +131,7 @@ in
           forceOptional = [ ];
           requiredAttrs = [ ];
           extraAttrs = { };
+          importId = null;
         }
         // o;
 
@@ -344,7 +354,15 @@ in
               "${ctx}: `oneOfRefs` names ${
                 quoteList (filter (r: !(o.refs ? ${r})) group)
               }, which ${ctx} does not declare as refs"
-          ) o.oneOfRefs;
+          ) o.oneOfRefs
+          ++ [
+            (check (
+              o.importId == null || builtins.isFunction o.importId
+            ) "${ctx}: `importId` must be null or a function from the rendered attributes to an import ID")
+            (check (
+              o.importId == null || !(tree ? adopt)
+            ) "${ctx}: `importId` adds an `adopt` option, but `${o.type}` has an attribute of that name")
+          ];
 
           spec = {
             inherit (o)
@@ -355,6 +373,7 @@ in
               refs
               description
               oneOfRefs
+              importId
               ;
             inherit
               secrets

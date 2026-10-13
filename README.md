@@ -18,6 +18,8 @@ reconciling the service's _runtime state_ once it is up.
 >   `<attr>File` indirection for every secret attribute at any depth.
 > - **[Garage](services/garage/README.md)** - 3 resource types (buckets,
 >   access keys, bucket permissions).
+> - **[lldap](services/lldap/README.md)** - 9 resource types (users,
+>   groups, custom attributes and their values, memberships).
 
 ## The gap this closes
 
@@ -83,7 +85,8 @@ unit_ visibly (`systemctl status`) without tearing down the service.
 ## Usage
 
 Add this flake as an input and import the pairing's NixOS module
-(`nixosModules.forgejo`, `nixosModules.keycloak`, `nixosModules.garage`, or
+(`nixosModules.forgejo`, `nixosModules.keycloak`, `nixosModules.garage`,
+`nixosModules.lldap`, or
 `nixosModules.default` for all pairings). Full installation, configuration
 examples, the option reference, the resource table, and the secrets guide
 live in the per-pairing README:
@@ -94,6 +97,7 @@ live in the per-pairing README:
   override.
 - [Garage pairing](services/garage/README.md) - includes what the cluster
   needs before the reconciler can apply.
+- [lldap pairing](services/lldap/README.md)
 
 ### Runnable examples
 
@@ -138,6 +142,12 @@ services/              # one directory per service<->provider pairing
     README.md          #   usage docs
   garage/              # Garage <-> jkossis/garage
     module.nix         #   services.garage.runtime + reconciler
+    lib.nix            #   provider specifics: wrapped executor + .tf.json generation
+    pkg.nix            #   vendor the provider (not in nixpkgs)
+    checks.nix         #   NixOS VM test
+    README.md          #   usage docs
+  lldap/               # lldap <-> tasansga/lldap
+    module.nix         #   services.lldap.runtime + reconciler
     lib.nix            #   provider specifics: wrapped executor + .tf.json generation
     pkg.nix            #   vendor the provider (not in nixpkgs)
     checks.nix         #   NixOS VM test

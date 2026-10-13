@@ -50,6 +50,10 @@
           inherit pkgs;
           inherit (inputs) nix-tf-schema;
         };
+        lldap = import ./services/lldap/lib.nix {
+          inherit pkgs;
+          inherit (inputs) nix-tf-schema;
+        };
       };
 
       # A NixOS module cannot reach a flake input by path, so the schema library
@@ -122,6 +126,18 @@
             };
             tfConfig = libs.garage.garageTfConfig;
             fixtures = import ./services/garage/fixtures.nix;
+          };
+
+          lldap-rendered-fixtures = renderFixtures {
+            name = "lldap";
+            options = libs.lldap.resourceOptions // {
+              baseUrl = urlOption "http://localhost:17170";
+              ldapUrl = urlOption "ldap://localhost:3890";
+              adminUser = urlOption "admin";
+              baseDN = urlOption "dc=example,dc=com";
+            };
+            tfConfig = libs.lldap.lldapTfConfig;
+            fixtures = import ./services/lldap/fixtures.nix;
           };
         };
 
@@ -208,6 +224,7 @@
       nixosModules.forgejo = withSchemaLib ./services/forgejo/module.nix;
       nixosModules.keycloak = withSchemaLib ./services/keycloak/module.nix;
       nixosModules.garage = withSchemaLib ./services/garage/module.nix;
+      nixosModules.lldap = withSchemaLib ./services/lldap/module.nix;
 
       nixosConfigurations = lib.mapAttrs' (
         name: cfg: lib.nameValuePair "example-${name}" (exampleSystem "x86_64-linux" cfg)
@@ -255,6 +272,10 @@
           inherit (inputs) self;
         })
         // (import ./services/garage/checks.nix {
+          inherit pkgs;
+          inherit (inputs) self;
+        })
+        // (import ./services/lldap/checks.nix {
           inherit pkgs;
           inherit (inputs) self;
         })

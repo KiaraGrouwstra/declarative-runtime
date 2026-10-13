@@ -458,19 +458,23 @@ rec {
         sensitive = true;
       };
 
+      variables =
+        lib.optionalAttrs (tokenVar != null) {
+          ${tokenVar} = sensitiveVar;
+        }
+        // lib.listToAttrs (map (v: lib.nameValuePair v sensitiveVar) extraSensitiveVars)
+        // lib.listToAttrs (map (e: lib.nameValuePair e.id sensitiveVar) allSecrets);
+
+      # OpenTofu rejects an empty block in `.tf.json` ("Missing block label"),
+      # so leave out each block that has no entries.
       config = {
         terraform.required_providers.${providerName} = {
           source = providerSource;
           version = providerVersion;
         };
-        variable =
-          lib.optionalAttrs (tokenVar != null) {
-            ${tokenVar} = sensitiveVar;
-          }
-          // lib.listToAttrs (map (v: lib.nameValuePair v sensitiveVar) extraSensitiveVars)
-          // lib.listToAttrs (map (e: lib.nameValuePair e.id sensitiveVar) allSecrets);
         provider.${providerName} = providerBlock cfg;
       }
+      // lib.optionalAttrs (variables != { }) { variable = variables; }
       // lib.optionalAttrs (resourceBlocks != { }) { resource = resourceBlocks; }
       // lib.optionalAttrs (allImports != [ ]) { import = allImports; };
 

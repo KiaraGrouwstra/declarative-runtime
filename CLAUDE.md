@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-> Status: the pattern is implemented, by two pairings. **`services/forgejo` is
+> Status: the pattern is implemented, by six pairings. **`services/forgejo` is
 > the worked reference pairing** — new pairings are modeled on it, and the
 > "Provider implementation contract" below is exactly what it encodes.
 > `services/keycloak` is the second, and the one to read for the sdk/v2 schema
@@ -67,14 +67,15 @@ For each enabled pairing:
 
 Provider reality verified against nixpkgs + the public registry:
 
-| Service      | Provider                          | Source                                                  | Status                                                                                                                                                                                                                                                          |
-| ------------ | --------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Forgejo**  | `forgejo` (svalabs/forgejo 1.5.0) | vendored in `services/forgejo/pkg.nix` (not in nixpkgs) | **Implemented — the reference pairing.** Dedicated Forgejo provider on the Forgejo Go SDK, tracking Forgejo's API as it diverges from Gitea (hard fork since 2024). Chosen over the in-nixpkgs `gitea` provider. Vendored via `terraform-providers.mkProvider`. |
-| **Grafana**  | `grafana` (4.36.0)                | `pkgs.terraform-providers.grafana`                      | Designed, not yet built. In-nixpkgs provider.                                                                                                                                                                                                                   |
-| **Keycloak** | `keycloak` (5.8.0)                | `pkgs.terraform-providers.keycloak`                     | **Implemented.** All 101 provider resources modelled, proven by six VM tests. Full admin REST API (realms/clients/roles/scopes). Heavy JVM service — VM tests need extra memory and a generous readiness wait.                                                  |
-| **Garage**   | `garage` (jkossis/garage 1.0.5)   | vendored in `services/garage/pkg.nix` (not in nixpkgs)  | **Implemented.** All 3 provider resources modelled. Needs Garage 2.x (v2 admin API). The admin token is Garage's own `admin_token_file`; the cluster needs a layout before the reconciler can apply.                                                            |
-| **lldap**    | `lldap` (tasansga/lldap 0.4.4)    | vendored in `services/lldap/pkg.nix` (not in nixpkgs)   | **Implemented.** All 9 provider resources modelled. The provider logs in as lldap's own admin user (`ldap_user_dn`, `ldap_user_pass_file`). It uses the GraphQL API, and LDAP only to set passwords.                                                            |
+| Service        | Provider                                  | Source                                                  | Status                                                                                                                                                                                                                                                          |
+| -------------- | ----------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Forgejo**    | `forgejo` (svalabs/forgejo 1.5.0)         | vendored in `services/forgejo/pkg.nix` (not in nixpkgs) | **Implemented — the reference pairing.** Dedicated Forgejo provider on the Forgejo Go SDK, tracking Forgejo's API as it diverges from Gitea (hard fork since 2024). Chosen over the in-nixpkgs `gitea` provider. Vendored via `terraform-providers.mkProvider`. |
+| **Grafana**    | `grafana` (4.36.0)                        | `pkgs.terraform-providers.grafana`                      | Designed, not yet built. In-nixpkgs provider.                                                                                                                                                                                                                   |
+| **Keycloak**   | `keycloak` (5.8.0)                        | `pkgs.terraform-providers.keycloak`                     | **Implemented.** All 101 provider resources modelled, proven by six VM tests. Full admin REST API (realms/clients/roles/scopes). Heavy JVM service — VM tests need extra memory and a generous readiness wait.                                                  |
+| **Garage**     | `garage` (jkossis/garage 1.0.5)           | vendored in `services/garage/pkg.nix` (not in nixpkgs)  | **Implemented.** All 3 provider resources modelled. Needs Garage 2.x (v2 admin API). The admin token is Garage's own `admin_token_file`; the cluster needs a layout before the reconciler can apply.                                                            |
+| **lldap**      | `lldap` (tasansga/lldap 0.4.4)            | vendored in `services/lldap/pkg.nix` (not in nixpkgs)   | **Implemented.** All 9 provider resources modelled. The provider logs in as lldap's own admin user (`ldap_user_dn`, `ldap_user_pass_file`). It uses the GraphQL API, and LDAP only to set passwords.                                                            |
 | **PostgreSQL** | `postgresql` (cyrilgdn/postgresql 1.27.0) | `pkgs.terraform-providers.cyrilgdn_postgresql`          | **Implemented.** All 15 provider resources modelled. The provider logs in over TCP as a superuser role that the module makes (`declarative_postgresql`), with a password that a oneshot generates.                                                              |
+| **OpenBao**    | `vault` (hashicorp/vault 5.11.0)          | `pkgs.terraform-providers.hashicorp_vault`              | **Implemented.** 86 of 204 provider resources modelled; the rest are Vault or Vault Enterprise features that OpenBao does not serve, each listed in `unsupported` with a reason. The operator initializes and unseals the server and gives a token.             |
 
 ## Repository layout
 
@@ -105,6 +106,7 @@ services/                   # one directory per service<->provider pairing
   garage/                   # the Garage <-> jkossis/garage pairing; same layout
   lldap/                    # the lldap <-> tasansga/lldap pairing; same layout
   postgresql/               # the PostgreSQL <-> cyrilgdn/postgresql pairing; same layout, no pkg.nix (provider is in nixpkgs)
+  openbao/                  # the OpenBao <-> hashicorp/vault pairing; same layout, no pkg.nix (provider is in nixpkgs)
 ```
 
 ## Provider implementation contract

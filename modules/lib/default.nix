@@ -496,7 +496,8 @@ rec {
   #
   #   name        unit + generated-config name (e.g. "declarative-forgejo")
   #   tfConfig    the .tf.json config to apply
-  #   afterUnits  units to order/require after (the service's main unit)
+  #   afterUnits  units to order after, want and be part of (the service's
+  #               main unit, and the units that make its token or password)
   #   healthUrl   url polled until the service answers, before applying, or
   #               null when the service is ready once `afterUnits` are active
   #   tokenFile   path to the admin token on the host, read via
@@ -516,6 +517,24 @@ rec {
   #               same hashed UID as the main unit, and systemd creates
   #               the work dir via StateDirectory= (derived from stateDir).
   #               requires stateDir to live under /var/lib.
+  #
+  # The unit sets `Wants=` on `afterUnits`, not `Requires=`. With `Requires=`,
+  # a failed first start of a base unit fails the start job of the reconciler
+  # with `result 'dependency'`, and `Restart=` cannot retry a start that did
+  # not run: the runtime state then stays unapplied until an operator starts
+  # the unit. With `Wants=`, the reconciler starts and fails on its own, and
+  # each retry pulls in the base units again.
+  #
+  # `PartOf=` keeps the other half of `Requires=`: a stop or a restart of a
+  # base unit stops or restarts the reconciler. A restart of a service can
+  # bring back state that only the reconciler removes (for example the incus
+  # preseed), and an apply is idempotent, so the reconciler applies again.
+  #
+  # The retry has no start limit. `RestartSec=` keeps the starts below the
+  # default limit only while systemd makes every start, and a
+  # `systemctl restart` during the delay (for example from a NixOS switch)
+  # starts the unit at once. The limit is then hit in a few seconds, and
+  # systemd does not retry a unit that hit it.
   mkReconcileService =
     {
       name,
@@ -564,7 +583,8 @@ rec {
     {
       description = "Declarative reconciliation for ${name} (OpenTofu)";
       after = afterUnits;
-      requires = afterUnits;
+      wants = afterUnits;
+      partOf = afterUnits;
       wantedBy = [ "multi-user.target" ];
       # re-apply when the generated config changes.
       restartTriggers = [ confFile ];
@@ -580,6 +600,9 @@ rec {
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
+        # retry a failed apply, for example while the service still starts.
+        Restart = "on-failure";
+        RestartSec = "30s";
         # run as the service's own user so tfstate sits next to its data.
         User = user;
         Group = group;
@@ -594,6 +617,8 @@ rec {
         StateDirectory = stateDirectoryRelative;
         StateDirectoryMode = "0700";
       };
+      # see above for why the retry has no start limit.
+      unitConfig.StartLimitIntervalSec = 0;
       script = ''
         set -euo pipefail
         umask 077

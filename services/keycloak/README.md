@@ -396,14 +396,14 @@ Other federation:
 
 ### Realm keys
 
-| Option                           | Key defaults | Reference inputs |
-| -------------------------------- | ------------ | ---------------- |
-| `realm_keystore_aes_generated`   | `name`       | `realm_id`       |
-| `realm_keystore_ecdsa_generated` | `name`       | `realm_id`       |
-| `realm_keystore_hmac_generated`  | `name`       | `realm_id`       |
-| `realm_keystore_java_keystore`   | `name`       | `realm_id`       |
-| `realm_keystore_rsa`             | `name`       | `realm_id`       |
-| `realm_keystore_rsa_generated`   | `name`       | `realm_id`       |
+| Option                             | Key defaults | Reference inputs |
+| ---------------------------------- | ------------ | ---------------- |
+| `realm_keystore_aes_generated`     | `name`       | `realm_id`       |
+| `realm_keystore_ecdsa_generated`   | `name`       | `realm_id`       |
+| `realm_keystore_hmac_generated`    | `name`       | `realm_id`       |
+| `realm_keystore_java_keystore`     | `name`       | `realm_id`       |
+| `realm_keystore_rsa`               | `name`       | `realm_id`       |
+| `realm_keystore_rsa_generated`     | `name`       | `realm_id`       |
 | `realm_keystore_rsa_enc_generated` | `name`       | `realm_id`       |
 
 ### Realm-level config + permissions

@@ -160,7 +160,7 @@ in
         };
 
         # One permission keeps a part of its grant, and one loses all of it.
-        specialisation.narrowed.configuration.services.garage.runtime.bucket_keys = {
+        specialisation.narrowed.configuration.services.garage.runtime.bucket_key = {
           app_photos = {
             write = lib.mkForce false;
             owner = lib.mkForce false;

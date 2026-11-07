@@ -73,8 +73,8 @@ in
         message = "virtualisation.incus.runtime requires virtualisation.incus.enable = true.";
       }
       {
-        assertion = lib.length (lib.attrNames cfg.servers) <= 1;
-        message = "virtualisation.incus.runtime.servers: set one entry at most. Two entries manage the same server configuration.";
+        assertion = lib.length (lib.attrNames cfg.server) <= 1;
+        message = "virtualisation.incus.runtime.server: set one entry at most. Two entries manage the same server configuration.";
       }
     ];
 

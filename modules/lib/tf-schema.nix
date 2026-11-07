@@ -155,9 +155,6 @@ in
     let
       check = cond: msg: if cond then null else throw "${runtimePrefix}: ${msg}";
 
-      # `svalabs/forgejo` -> `forgejo`: every resource type starts with it.
-      providerName = lib.last (lib.splitString "/" source);
-
       # the collection takes the resource name as it is. A plural cannot be
       # derived: many resource names are plural already (`group_roles`), and a
       # suffix cannot tell those from a singular (`entity_alias`).

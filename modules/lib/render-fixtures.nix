@@ -37,7 +37,9 @@ in
                 (lib.evalModules {
                   modules = [
                     { inherit options; }
-                    fixture
+                    # set as `config`: a top-level `key` in a module is the
+                    # identity of the module, not a collection.
+                    { config = fixture; }
                   ];
                 }).config;
             # OpenTofu rejects an empty top-level block, such as `"variable": {}`.

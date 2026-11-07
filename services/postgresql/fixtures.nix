@@ -12,7 +12,7 @@
   # attribute (`password`), a required one (`conninfo`), and a map value
   # (`options.password`).
   main = {
-    roles = {
+    role = {
       owner = { };
       readers = { };
       app = {
@@ -37,20 +37,20 @@
       };
     };
 
-    databases = {
+    database = {
       app.owner = "owner";
       sub = { };
     };
 
-    schemas.app = {
+    schema.app = {
       database = "app";
       owner = "owner";
     };
 
     # In the provider's database, where the foreign server is.
-    extensions.postgres_fdw = { };
+    extension.postgres_fdw = { };
 
-    functions.answer = {
+    function.answer = {
       database = "app";
       schema = "app";
       returns = "integer";
@@ -58,14 +58,14 @@
       body = "SELECT 42";
     };
 
-    grants.readers_schema = {
+    grant.readers_schema = {
       database = "app";
       role = "readers";
       schema = "app";
       object_type = "schema";
       privileges = [ "USAGE" ];
     };
-    grants.readers_tables = {
+    grant.readers_tables = {
       database = "app";
       role = "readers";
       schema = "app";
@@ -75,7 +75,7 @@
 
     # The member is a literal, unmanaged role: see the `grant_roles`
     # description.
-    grant_roles.postgres_readers = {
+    grant_role.postgres_readers = {
       role = "postgres";
       grant_role = "readers";
     };
@@ -89,21 +89,21 @@
       privileges = [ "SELECT" ];
     };
 
-    publications.app = {
+    publication.app = {
       database = "app";
       all_tables = true;
     };
 
-    replication_slots.app = {
+    replication_slot.app = {
       database = "app";
       plugin = "pgoutput";
     };
 
-    physical_replication_slots.standby = { };
+    physical_replication_slot.standby = { };
 
     # The subscription uses the slot above, as a subscription in the same
     # cluster as its publication cannot make its own slot.
-    subscriptions.app = {
+    subscription.app = {
       database = "sub";
       publications = [ "app" ];
       create_slot = false;
@@ -112,7 +112,7 @@
     };
 
     # by key -> ordered after the extension that makes the wrapper.
-    servers.loopback = {
+    server.loopback = {
       fdw_name = "postgres_fdw";
       options = {
         host = "127.0.0.1";
@@ -120,7 +120,7 @@
       };
     };
 
-    user_mappings.app_loopback = {
+    user_mapping.app_loopback = {
       server_name = "loopback";
       user_name = "app";
       options = {

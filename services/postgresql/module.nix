@@ -41,7 +41,7 @@ let
   # the names of the declared roles, with a key standing in for a null name.
   declaredRoles = lib.mapAttrsToList (
     key: role: if role.name or null == null then key else role.name
-  ) (cfg.roles or { });
+  ) (cfg.role or { });
 in
 {
   options.services.postgresql.runtime = {
@@ -67,7 +67,7 @@ in
       }
       {
         assertion = !(lib.elem adminUser declaredRoles);
-        message = "services.postgresql.runtime.roles: the role `${adminUser}` is the reconciler's own role; do not declare it.";
+        message = "services.postgresql.runtime.role: the role `${adminUser}` is the reconciler's own role; do not declare it.";
       }
     ];
 

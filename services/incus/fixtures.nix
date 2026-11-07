@@ -14,7 +14,7 @@
   main = {
     # The preseed made this network. The reconciler adds the keys that the
     # preseed does not set.
-    networks.incusbr0 = {
+    network.incusbr0 = {
       adopt = true;
       type = "bridge";
       config = {
@@ -25,7 +25,7 @@
         "raw.dnsmasq" = "dhcp-option-force=26,1400";
       };
     };
-    networks.internal = {
+    network.internal = {
       type = "bridge";
       config = {
         "ipv4.address" = "10.0.200.1/24";
@@ -34,18 +34,18 @@
       };
     };
 
-    storage_pools.default = {
+    storage_pool.default = {
       adopt = true;
       driver = "dir";
     };
     # The pool is a reference to the adopted pool.
-    storage_volumes.data = {
+    storage_volume.data = {
       pool = "default";
       description = "Data volume on the adopted pool";
     };
 
     # incus makes the `default` profile. The provider changes it in place.
-    profiles.default = {
+    profile.default = {
       description = "Default profile, set by the reconciler";
       device = [
         {
@@ -67,21 +67,21 @@
       ];
     };
 
-    projects.tenant = {
+    project.tenant = {
       description = "Workloads of a tenant";
       config."limits.instances" = "4";
     };
-    profiles.web = {
+    profile.web = {
       project = "tenant";
       description = "Web workloads of the tenant";
       config."limits.cpu" = "1";
     };
 
-    servers.main.config."core.https_address" = ":8443";
+    server.main.config."core.https_address" = ":8443";
 
     # A certificate that the host makes at runtime: the provider reads it from
     # the file when it applies.
-    certificates.metrics = {
+    certificate.metrics = {
       type = "metrics";
       certificateFile = "/etc/incus-metrics.crt";
     };
@@ -90,7 +90,7 @@
   # No `<attr>File` attribute and no credential, so the rendered config has no
   # variables. The renderer must then leave out the `variable` block.
   noFiles = {
-    networks.incusbr0 = {
+    network.incusbr0 = {
       adopt = true;
       type = "bridge";
       config."ipv4.address" = "10.0.100.1/24";

@@ -48,6 +48,7 @@
         };
         garage = import ./services/garage/lib.nix {
         lldap = import ./services/lldap/lib.nix {
+        postgresql = import ./services/postgresql/lib.nix {
           inherit pkgs;
           inherit (inputs) nix-tf-schema;
         };
@@ -133,6 +134,13 @@
             };
             tfConfig = libs.lldap.lldapTfConfig;
             fixtures = import ./services/lldap/fixtures.nix;
+          postgresql-rendered-fixtures = renderFixtures {
+            name = "postgresql";
+            options = libs.postgresql.resourceOptions // {
+              port = urlOption 5432;
+            };
+            tfConfig = libs.postgresql.postgresqlTfConfig;
+            fixtures = import ./services/postgresql/fixtures.nix;
           };
         };
 
@@ -220,6 +228,7 @@
       nixosModules.keycloak = withSchemaLib ./services/keycloak/module.nix;
       nixosModules.garage = withSchemaLib ./services/garage/module.nix;
       nixosModules.lldap = withSchemaLib ./services/lldap/module.nix;
+      nixosModules.postgresql = withSchemaLib ./services/postgresql/module.nix;
 
       nixosConfigurations = lib.mapAttrs' (
         name: cfg: lib.nameValuePair "example-${name}" (exampleSystem "x86_64-linux" cfg)
@@ -268,6 +277,7 @@
         })
         // (import ./services/garage/checks.nix {
         // (import ./services/lldap/checks.nix {
+        // (import ./services/postgresql/checks.nix {
           inherit pkgs;
           inherit (inputs) self;
         })

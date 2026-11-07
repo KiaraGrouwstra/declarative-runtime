@@ -89,8 +89,9 @@ in
     Every field is optional and exists only to state what a schema cannot;
     `{ }` models a resource as the schema has it. The collection key is the
     Terraform label. There is deliberately no way to declare an option with no
-    schema counterpart -- `refs` is the sole exception, and that is what makes
-    the drift check total.
+    schema counterpart. There are two exceptions, and neither renders a
+    resource attribute: `refs`, and the `adopt` option that `importId` adds.
+    That is what makes the drift check total.
 
       refs           schema attribute -> reference spec (see below)
       description    what the resource is, for the collection's NixOS option.
@@ -113,6 +114,13 @@ in
       forceOptional  paths required upstream but nullable here
       requiredAttrs  extra non-empty checks
       extraAttrs     last-resort typed overrides; keys must name real attributes
+      importId       null, or a function from an item's options as set (refs
+                     not resolved, unset options absent) to the provider's
+                     import ID for it. When set, each item gets
+                     an `adopt` option that renders an OpenTofu `import`
+                     block. For objects that something other than the
+                     reconciler creates first, and that the provider cannot
+                     create again. The provider documents the ID format.
 
     A reference spec is
     `{ targets; managedOnly; required ? <schema>; description ? <schema>; }`,
@@ -181,6 +189,7 @@ in
           forceOptional = [ ];
           requiredAttrs = [ ];
           extraAttrs = { };
+          importId = null;
         }
         // o;
 
@@ -424,7 +433,15 @@ in
               "${ctx}: `oneOfRefs` names ${
                 quoteList (filter (r: !(o.refs ? ${r})) group)
               }, which ${ctx} does not declare as refs"
-          ) o.oneOfRefs;
+          ) o.oneOfRefs
+          ++ [
+            (check (
+              o.importId == null || builtins.isFunction o.importId
+            ) "${ctx}: `importId` must be null or a function from the rendered attributes to an import ID")
+            (check (
+              o.importId == null || !(tree ? adopt)
+            ) "${ctx}: `importId` adds an `adopt` option, but `${o.type}` has an attribute of that name")
+          ];
 
           # each ref, with its list-ness and optionality read off the schema.
           refs = lib.mapAttrs (
@@ -479,6 +496,7 @@ in
             inherit (o)
               type
               scope
+              importId
               ;
             inherit nameAttr description refs;
             inherit (o) oneOfRefs;

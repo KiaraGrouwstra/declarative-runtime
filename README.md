@@ -27,6 +27,9 @@ reconciling the service's _runtime state_ once it is up.
 >   (namespaces, mounts, auth methods, policies, key/value secrets, database,
 >   PKI, transit and SSH engines, identity, MFA and OIDC) through the
 >   `hashicorp/vault` provider.
+> - **[incus](services/incus/README.md)** - 18 resource types (networks,
+>   storage pools and volumes, profiles, projects, server configuration,
+>   trusted certificates and more). Takes over what the incus preseed makes.
 
 ## The gap this closes
 
@@ -96,6 +99,7 @@ Add this flake as an input and import the pairing's NixOS module
 (`nixosModules.forgejo`, `nixosModules.keycloak`, `nixosModules.lldap`, or
 (`nixosModules.forgejo`, `nixosModules.keycloak`, `nixosModules.postgresql`, or
 (`nixosModules.forgejo`, `nixosModules.keycloak`, `nixosModules.openbao`, or
+(`nixosModules.forgejo`, `nixosModules.keycloak`, `nixosModules.incus`, or
 `nixosModules.default` for all pairings). Full installation, configuration
 examples, the option reference, the resource table, and the secrets guide
 live in the per-pairing README:
@@ -109,6 +113,8 @@ live in the per-pairing README:
 - [lldap pairing](services/lldap/README.md)
 - [PostgreSQL pairing](services/postgresql/README.md)
 - [OpenBao pairing](services/openbao/README.md)
+- [incus pairing](services/incus/README.md) - includes how to split the
+  objects between the incus preseed and the reconciler.
 
 ### Runnable examples
 
@@ -161,6 +167,9 @@ services/              # one directory per service<->provider pairing
   openbao/             # OpenBao <-> hashicorp/vault (in nixpkgs)
     module.nix         #   services.openbao.runtime + reconciler
     lib.nix            #   typed resourceTypes for the Vault API that OpenBao serves
+  incus/               # incus <-> lxc/incus (in nixpkgs)
+    module.nix         #   virtualisation.incus.runtime + reconciler
+    lib.nix            #   provider specifics: wrapped executor + .tf.json generation
     checks.nix         #   NixOS VM test
     README.md          #   usage docs
 examples/              # runnable demos; one configuration.nix + README per example

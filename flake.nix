@@ -47,9 +47,21 @@
           inherit (inputs) nix-tf-schema;
         };
         garage = import ./services/garage/lib.nix {
+          inherit pkgs;
+          inherit (inputs) nix-tf-schema;
+        };
         lldap = import ./services/lldap/lib.nix {
+          inherit pkgs;
+          inherit (inputs) nix-tf-schema;
+        };
         postgresql = import ./services/postgresql/lib.nix {
+          inherit pkgs;
+          inherit (inputs) nix-tf-schema;
+        };
         openbao = import ./services/openbao/lib.nix {
+          inherit pkgs;
+          inherit (inputs) nix-tf-schema;
+        };
         incus = import ./services/incus/lib.nix {
           inherit pkgs;
           inherit (inputs) nix-tf-schema;
@@ -126,6 +138,8 @@
             };
             tfConfig = libs.garage.garageTfConfig;
             fixtures = import ./services/garage/fixtures.nix;
+          };
+
           lldap-rendered-fixtures = renderFixtures {
             name = "lldap";
             options = libs.lldap.resourceOptions // {
@@ -136,6 +150,8 @@
             };
             tfConfig = libs.lldap.lldapTfConfig;
             fixtures = import ./services/lldap/fixtures.nix;
+          };
+
           postgresql-rendered-fixtures = renderFixtures {
             name = "postgresql";
             options = libs.postgresql.resourceOptions // {
@@ -143,6 +159,8 @@
             };
             tfConfig = libs.postgresql.postgresqlTfConfig;
             fixtures = import ./services/postgresql/fixtures.nix;
+          };
+
           openbao-rendered-fixtures = renderFixtures {
             name = "openbao";
             options = libs.openbao.resourceOptions // {
@@ -151,6 +169,8 @@
             };
             tfConfig = libs.openbao.openbaoTfConfig;
             fixtures = import ./services/openbao/fixtures.nix;
+          };
+
           incus-rendered-fixtures = renderFixtures {
             name = "incus";
             options = libs.incus.resourceOptions // {
@@ -301,9 +321,21 @@
           inherit (inputs) self;
         })
         // (import ./services/garage/checks.nix {
+          inherit pkgs;
+          inherit (inputs) self;
+        })
         // (import ./services/lldap/checks.nix {
+          inherit pkgs;
+          inherit (inputs) self;
+        })
         // (import ./services/postgresql/checks.nix {
+          inherit pkgs;
+          inherit (inputs) self;
+        })
         // (import ./services/openbao/checks.nix {
+          inherit pkgs;
+          inherit (inputs) self;
+        })
         // (import ./services/incus/checks.nix {
           inherit pkgs;
           inherit (inputs) self;

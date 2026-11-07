@@ -87,10 +87,14 @@ For each enabled pairing:
 1. Enable the upstream Nixpkgs service (`services.<svc>.enable = true`).
 2. Generate `.tf.json` from `services.<svc>.runtime.*` (desired state).
 3. Run a `Type=oneshot` apply unit ordered `After=` the primary unit, gated on a
-   **readiness probe**; it re-applies when the generated config changes.
+   **readiness probe**; it re-applies when the generated config changes or the
+   primary unit restarts.
 
 Reconciliation is **run-once, not a drift timer**. A failed apply fails _that
-unit_ visibly (`systemctl status`) without tearing down the service.
+unit_ visibly (`systemctl status`) without tearing down the service, and
+retries every 30s. The unit uses `Wants=` on the primary unit, not
+`Requires=`, so it also retries when the first start of the primary unit
+fails.
 
 ## Usage
 

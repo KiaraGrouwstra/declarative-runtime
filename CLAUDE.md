@@ -37,7 +37,7 @@ already covered by `services.authelia.*` — so it was dropped as a pairing.)
 | Executor         | **OpenTofu** (nixpkgs `opentofu`, MPL 2.0 / free). `terraform` is BSL 1.1 / unfree and is **not** used.                                                                                                                                                                                                                                                     |
 | Config authoring | Generate **`.tf.json`** directly from Nix (`builtins.toJSON`). No HCL, no terranix dependency.                                                                                                                                                                                                                                                              |
 | Secrets          | **systemd `LoadCredential=`** is the blessed path. Generated config references the secret as a `sensitive` Terraform variable; never literal secrets. sops-nix/agenix, if used, only supply the source that feeds `LoadCredential=`.                                                                                                                        |
-| Reconciliation   | **Run-once**: a `Type=oneshot` unit ordered `After=` the primary unit + readiness probe, runs `init` + `apply -auto-approve`. Re-applies on config change via `restartTriggers`. **No** drift timer. A failed apply fails _that unit_ visibly (`systemctl status`) and does **not** tear down the service.                                                  |
+| Reconciliation   | **Run-once**: a `Type=oneshot` unit ordered `After=` (and `Wants=`, not `Requires=`) the primary unit + readiness probe, runs `init` + `apply -auto-approve`. Re-applies on config change via `restartTriggers`. **No** drift timer. A failed apply fails _that unit_ visibly (`systemctl status`), retries every 30s, and does **not** tear down the service. |
 | State            | **Local, per-host only.** Terraform state lives under the **base service's primary state directory** (e.g. `services.forgejo.stateDir` → `/var/lib/forgejo`), co-located with the service it configures. No remote backends.                                                                                                                                |
 | Module namespace | Under the base service as **`services.<svc>.runtime.*`** (e.g. `services.forgejo.runtime.repository`), so the pairing reads as a transparent extension of the upstream `services.<svc>` module.                                                                                                                                                             |
 | Resource surface | **Derived from a vendored provider schema**, via the generic converters in [`nix-tf-schema`](https://git.fediversity.eu/fediversity/nix-tf-schema) (a source-only flake input). A pairing hand-writes only what the schema cannot carry: the reference graph, the NixOS-facing prose, and per-collection corrections. Provider drift is an eval-time error. |
@@ -296,9 +296,17 @@ readers are exercised in-tree:
 ### The reconciler unit (`mkReconcileService`, reused as-is)
 
 - Unit `declarative-<svc>`: `Type=oneshot` + `RemainAfterExit`;
-  `after`/`requires` the primary unit (and the token bootstrap, if any);
+  `after`/`wants`/`partOf` the primary unit (and the token bootstrap, if any);
   `wantedBy = multi-user.target`; `restartTriggers = [ confFile ]` (re-apply on
   config change); env `TF_IN_AUTOMATION=1` / `TF_INPUT=0`.
+- `wants`, not `requires`: with `requires`, a failed first start of the primary
+  unit fails the reconciler's start job, and `Restart=` cannot retry a start
+  that did not run. `partOf` keeps the stop/restart propagation of `requires`,
+  so a restart of the primary unit re-applies. A failed apply retries
+  (`Restart=on-failure`, `RestartSec=30s`) with no start limit
+  (`StartLimitIntervalSec=0`), because a `systemctl restart` during the delay
+  starts the unit at once and can hit the default limit, which systemd never
+  retries.
 - Its Terraform state lives under the **base service's primary state directory**
   (a `declarative-terraform` subdir of e.g. `services.forgejo.stateDir`, created
   `0700`), co-located with the service it configures and backed up alongside it,

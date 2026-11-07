@@ -49,6 +49,7 @@
         garage = import ./services/garage/lib.nix {
         lldap = import ./services/lldap/lib.nix {
         postgresql = import ./services/postgresql/lib.nix {
+        openbao = import ./services/openbao/lib.nix {
           inherit pkgs;
           inherit (inputs) nix-tf-schema;
         };
@@ -141,6 +142,14 @@
             };
             tfConfig = libs.postgresql.postgresqlTfConfig;
             fixtures = import ./services/postgresql/fixtures.nix;
+          openbao-rendered-fixtures = renderFixtures {
+            name = "openbao";
+            options = libs.openbao.resourceOptions // {
+              address = urlOption "http://127.0.0.1:8200";
+              caCertFile = urlOption null;
+            };
+            tfConfig = libs.openbao.openbaoTfConfig;
+            fixtures = import ./services/openbao/fixtures.nix;
           };
         };
 
@@ -229,6 +238,7 @@
       nixosModules.garage = withSchemaLib ./services/garage/module.nix;
       nixosModules.lldap = withSchemaLib ./services/lldap/module.nix;
       nixosModules.postgresql = withSchemaLib ./services/postgresql/module.nix;
+      nixosModules.openbao = withSchemaLib ./services/openbao/module.nix;
 
       nixosConfigurations = lib.mapAttrs' (
         name: cfg: lib.nameValuePair "example-${name}" (exampleSystem "x86_64-linux" cfg)
@@ -278,6 +288,7 @@
         // (import ./services/garage/checks.nix {
         // (import ./services/lldap/checks.nix {
         // (import ./services/postgresql/checks.nix {
+        // (import ./services/openbao/checks.nix {
           inherit pkgs;
           inherit (inputs) self;
         })

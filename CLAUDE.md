@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-> Status: the pattern is implemented, by two pairings. **`services/forgejo` is
+> Status: the pattern is implemented, by three pairings. **`services/forgejo` is
 > the worked reference pairing** — new pairings are modeled on it, and the
 > "Provider implementation contract" below is exactly what it encodes.
 > `services/keycloak` is the second, and the one to read for the sdk/v2 schema
@@ -85,6 +85,8 @@ Provider reality verified against nixpkgs + the public registry:
 | **Grafana**    | `grafana` (4.36.0)                        | `pkgs.terraform-providers.grafana`                      | Designed, not yet built. In-nixpkgs provider.                                                                                                                                                                                                                   |
 | **Keycloak**   | `keycloak` (5.8.0)                        | `pkgs.terraform-providers.keycloak`                     | **Implemented.** All 101 provider resources modelled, proven by six VM tests. Full admin REST API (realms/clients/roles/scopes). Heavy JVM service — VM tests need extra memory and a generous readiness wait.                                                  |
 | **PostgreSQL** | `postgresql` (cyrilgdn/postgresql 1.27.0) | `pkgs.terraform-providers.cyrilgdn_postgresql`          | **Implemented.** All 15 provider resources modelled. The provider logs in over TCP as a superuser role that the module makes (`declarative_postgresql`), with a password that a oneshot generates.                                                              |
+| **Keycloak** | `keycloak` (5.8.0)                | `pkgs.terraform-providers.keycloak`                     | **Implemented.** All 101 provider resources modelled, proven by six VM tests. Full admin REST API (realms/clients/roles/scopes). Heavy JVM service — VM tests need extra memory and a generous readiness wait.                                                  |
+| **OpenBao**  | `vault` (hashicorp/vault 5.11.0)  | `pkgs.terraform-providers.hashicorp_vault`              | **Implemented.** 86 of 204 provider resources modelled; the rest are Vault or Vault Enterprise features that OpenBao does not serve, each listed in `unsupported` with a reason. The operator initializes and unseals the server and gives a token.             |
 
 ## Repository layout
 
@@ -116,6 +118,7 @@ services/                   # one directory per service<->provider pairing
   garage/                   # the Garage <-> arsolitt/garagehq pairing; same layout, with a pkg.nix (provider is not in nixpkgs)
   lldap/                    # the lldap <-> tasansga/lldap pairing; same layout, no pkg.nix (provider is in nixpkgs)
   postgresql/               # the PostgreSQL <-> cyrilgdn/postgresql pairing; same layout, no pkg.nix (provider is in nixpkgs)
+  openbao/                  # the OpenBao <-> hashicorp/vault pairing; same layout, no pkg.nix (provider is in nixpkgs)
 ```
 
 ## Provider implementation contract

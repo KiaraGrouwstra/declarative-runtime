@@ -7,5 +7,6 @@
     ../services/garage/module.nix
     ../services/lldap/module.nix
     ../services/postgresql/module.nix
+    ../services/openbao/module.nix
   ];
 }

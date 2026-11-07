@@ -404,6 +404,7 @@ Other federation:
 | `realm_keystore_java_keystore`   | `name`       | `realm_id`       |
 | `realm_keystore_rsa`             | `name`       | `realm_id`       |
 | `realm_keystore_rsa_generated`   | `name`       | `realm_id`       |
+| `realm_keystore_rsa_enc_generated` | `name`       | `realm_id`       |
 
 ### Realm-level config + permissions
 

@@ -73,6 +73,12 @@ Provider reality verified against nixpkgs + the public registry:
 | **Grafana**  | `grafana` (4.36.0)                   | `pkgs.terraform-providers.grafana`                      | Designed, not yet built. In-nixpkgs provider.                                                                                                                                                                                                                            |
 | **Keycloak** | `keycloak` (5.10.0)                  | `pkgs.terraform-providers.keycloak_keycloak`            | **Implemented.** All 111 provider resources modelled, proven by six VM tests. Full admin REST API (realms/clients/roles/scopes). Heavy JVM service — VM tests need extra memory and a generous readiness wait.                                                           |
 | **Garage**   | `garagehq` (arsolitt/garagehq 1.3.0) | vendored in `services/garage/pkg.nix` (not in nixpkgs)  | **Implemented.** 3 of 5 provider resources modelled; `admin_token` and `cluster_layout` are `unsupported` with reasons. Needs Garage 2.x (v2 admin API). The admin token is Garage's own `admin_token_file`; the cluster needs a layout before the reconciler can apply. |
+| Service      | Provider                          | Source                                                  | Status                                                                                                                                                                                                                                                          |
+| ------------ | --------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Forgejo**  | `forgejo` (svalabs/forgejo 1.5.0) | vendored in `services/forgejo/pkg.nix` (not in nixpkgs) | **Implemented — the reference pairing.** Dedicated Forgejo provider on the Forgejo Go SDK, tracking Forgejo's API as it diverges from Gitea (hard fork since 2024). Chosen over the in-nixpkgs `gitea` provider. Vendored via `terraform-providers.mkProvider`. |
+| **Grafana**  | `grafana` (4.36.0)                | `pkgs.terraform-providers.grafana`                      | Designed, not yet built. In-nixpkgs provider.                                                                                                                                                                                                                   |
+| **Keycloak** | `keycloak` (5.10.0)               | `pkgs.terraform-providers.keycloak_keycloak`            | **Implemented.** All 111 provider resources modelled, proven by six VM tests. Full admin REST API (realms/clients/roles/scopes). Heavy JVM service — VM tests need extra memory and a generous readiness wait.                                                  |
+| **lldap**    | `lldap` (tasansga/lldap 0.4.4)    | `pkgs.terraform-providers.tasansga_lldap`               | **Implemented.** All 9 provider resources modelled. The provider logs in as lldap's own admin user (`ldap_user_dn`, `ldap_user_pass_file`). It uses the GraphQL API, and LDAP only to set passwords.                                                            |
 
 ## Repository layout
 
@@ -102,6 +108,7 @@ services/                   # one directory per service<->provider pairing
     README.md               # per-pairing usage docs
   keycloak/                 # the Keycloak <-> keycloak/keycloak pairing; same layout, no pkg.nix (provider is in nixpkgs)
   garage/                   # the Garage <-> arsolitt/garagehq pairing; same layout, with a pkg.nix (provider is not in nixpkgs)
+  lldap/                    # the lldap <-> tasansga/lldap pairing; same layout, no pkg.nix (provider is in nixpkgs)
 ```
 
 ## Provider implementation contract

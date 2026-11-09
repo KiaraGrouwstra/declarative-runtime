@@ -84,6 +84,16 @@
     certificate.metrics = {
       type = "metrics";
       certificateFile = "/etc/incus-metrics.crt";
+      # Nothing writes this file, so the apply creates the certificate.
+      adoptIdFile = "/run/incus-metrics.id";
+    };
+
+    # A certificate that is in the trust store before the first apply. The VM
+    # test writes its fingerprint to the file.
+    certificate.adopted = {
+      type = "metrics";
+      certificateFile = "/etc/incus-adopted.crt";
+      adoptIdFile = "/run/incus-adopted.id";
     };
   };
 

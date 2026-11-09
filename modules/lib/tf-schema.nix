@@ -121,6 +121,12 @@ in
                      block. For objects that something other than the
                      reconciler creates first, and that the provider cannot
                      create again. The provider documents the ID format.
+      runtimeImportId
+                     true when the import ID is known at runtime only (a
+                     fingerprint of a key that the host mints, say). Each
+                     item then gets an `adoptIdFile` option: the path of a
+                     file that holds the ID, read at plan time. Mutually
+                     exclusive with `importId`.
 
     A reference spec is
     `{ targets; managedOnly; required ? <schema>; description ? <schema>; }`,
@@ -187,6 +193,7 @@ in
           requiredAttrs = [ ];
           extraAttrs = { };
           importId = null;
+          runtimeImportId = false;
         }
         // o;
 
@@ -438,6 +445,13 @@ in
             (check (
               o.importId == null || !(tree ? adopt)
             ) "${ctx}: `importId` adds an `adopt` option, but `${o.type}` has an attribute of that name")
+            (check (builtins.isBool o.runtimeImportId) "${ctx}: `runtimeImportId` must be a boolean")
+            (check (
+              !o.runtimeImportId || o.importId == null
+            ) "${ctx}: `runtimeImportId` and `importId` are mutually exclusive")
+            (check (!o.runtimeImportId || !(tree ? adoptIdFile))
+              "${ctx}: `runtimeImportId` adds an `adoptIdFile` option, but `${o.type}` has an attribute of that name"
+            )
           ];
 
           # each ref, with its list-ness and optionality read off the schema.
@@ -494,6 +508,7 @@ in
               type
               scope
               importId
+              runtimeImportId
               ;
             inherit nameAttr description refs;
             inherit (o) oneOfRefs;

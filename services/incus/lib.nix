@@ -81,6 +81,9 @@ let
         # client key pair made at first boot, say). A `<attr>File` sibling is
         # the only way to read a file at apply time.
         extraSecrets = [ "certificate" ];
+        # The provider imports a certificate by its fingerprint, which is not
+        # known at evaluation for a certificate that the host mints.
+        runtimeImportId = true;
         description = "Certificates in the trust store. Give the PEM inline, or the path of a file on the host with `certificateFile`.";
       };
       cluster_group = { };

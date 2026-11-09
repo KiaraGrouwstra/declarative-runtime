@@ -276,6 +276,10 @@ readers are exercised in-tree:
   `import` block whose `id` is `importId` of the entry's own options (as
   written: references unresolved, nulls removed, `name` set). An `import` of an
   object already in the state is a no-op, so `adopt` can stay set.
+- `runtimeImportId = true` is the same for an ID that is known at runtime only
+  (exclusive with `importId`). It adds an `adoptIdFile` option to each entry.
+  The rendered `import` block reads the ID from that file at plan time, and a
+  missing file means no import, so the apply creates the object.
 - `<svc>TfConfig cfg` returns `{ config; credentials; }`. `config` carries **no
   secret**: a `provider` block pointed at the local instance, plus the admin
   token and every `<attr>File` secret as `sensitive` input `variable`s fed from

@@ -147,12 +147,12 @@ When you split, keep the two in agreement:
   set.
 - **Do not set `adopt` on the `default` profile.** incus makes it, and the
   provider changes it in place when it creates it.
-- **Do not put certificates in the preseed.** Certificates can not be adopted:
-  the provider identifies a certificate by its fingerprint, and the
-  fingerprint of a certificate that the host mints at runtime is not known at
-  evaluation. A host that moves a certificate from the preseed (or from a
-  `incus config trust add`) to the reconciler must remove the trust entry
-  once, before the first apply, so that the reconciler can create it again.
+- **Set `adoptIdFile` on a certificate that exists in the trust store.** The
+  provider identifies a certificate by its fingerprint, and the fingerprint of
+  a certificate that the host mints at runtime is not known at evaluation. A
+  step before the reconciler writes the fingerprint to the file when the trust
+  store has the certificate. With no file, the reconciler creates the
+  certificate.
 
 ## Module options (`virtualisation.incus.runtime`)
 

@@ -170,6 +170,28 @@ rec {
                     creator is reverted on the next apply.
                   '';
                 };
+              }
+              // lib.optionalAttrs (spec.runtimeImportId or false) {
+                adoptIdFile = lib.mkOption {
+                  # The path goes into an HCL expression. `$` and `%` start a
+                  # template sequence there.
+                  type = ty.nullOr (ty.strMatching "/[^$%]*");
+                  default = null;
+                  description = ''
+                    Absolute runtime path to a file that holds the import ID
+                    of an object that exists already. When the file exists at
+                    plan time, the apply takes the object into the state, in
+                    place of creating it. When there is no file, the apply
+                    creates the object.
+
+                    Use this when the import ID is known at runtime only. A
+                    step before the apply must write the file, and only when
+                    the object exists: the apply fails on an ID that names
+                    no object. The rendered OpenTofu `import` block has no
+                    effect when the object is in the state already, so the
+                    file can stay.
+                  '';
+                };
               };
           }
         );
@@ -336,7 +358,10 @@ rec {
         let
           # drop ref keys (re-injected as refAttrs below). *File siblings
           # are kept -- substituteSecrets handles them after cleanNulls.
-          virtuals = builtins.attrNames spec.refs ++ [ "adopt" ];
+          virtuals = builtins.attrNames spec.refs ++ [
+            "adopt"
+            "adoptIdFile"
+          ];
           base = removeAttrs item ([ "_module" ] ++ virtuals);
           nameInject = lib.optionalAttrs (spec.nameAttr != null && (item.${spec.nameAttr} or null) == null) {
             ${spec.nameAttr} = key;
@@ -422,6 +447,18 @@ rec {
             to = "${spec.type}.${label}";
             id = spec.importId (cleanNulls (removeAttrs item [ "adopt" ] // nameInject));
           };
+          # a `for_each` with no instance key on `to` makes the block optional:
+          # an empty set renders no import, one element imports that ID.
+          runtimeImports = lib.optional ((item.adoptIdFile or null) != null) (
+            let
+              path = builtins.toJSON item.adoptIdFile;
+            in
+            {
+              for_each = "\${fileexists(${path}) ? toset([trimspace(file(${path}))]) : toset([])}";
+              to = "${spec.type}.${label}";
+              id = "\${each.value}";
+            }
+          );
         in
         # deepSeq forces the checks to run.
         # (they're not nixos assertions because we generate the .tf.json
@@ -434,7 +471,8 @@ rec {
           }"
         else
           builtins.deepSeq [ reqSecretChecks reqAttrChecks oneOfChecks ] {
-            inherit label imports;
+            inherit label;
+            imports = imports ++ runtimeImports;
             value = wrapped;
             inherit (substituted) secrets;
           };
